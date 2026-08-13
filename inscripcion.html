@@ -267,12 +267,24 @@ footer .slogan{font-family:var(--font-heading);font-style:italic;font-weight:700
           <p class="msg" id="msg-alumno_domicilio">Cargá el domicilio.</p>
         </div>
         <div class="f">
-          <label for="alumno_barrio">Barrio</label>
-          <input type="text" id="alumno_barrio" name="alumno_barrio" list="barrios" placeholder="Ej.: Barrio Bicentenario">
-          <datalist id="barrios">
-            <option value="Centro"><option value="Barrio Bicentenario"><option value="Barrio 128 Viviendas">
-            <option value="Barrio San Antonio"><option value="Barrio Santa Rita"><option value="Barrio Guayquiraró">
-          </datalist>
+          <label for="alumno_barrio">Barrio <span class="req">*</span></label>
+          <select id="alumno_barrio" name="alumno_barrio">
+            <option value="">Elegí una opción…</option>
+            <option>Centro</option>
+            <option>Barrio Bicentenario</option>
+            <option>Barrio 128 Viviendas</option>
+            <option>Barrio San Antonio</option>
+            <option>Barrio Santa Rita</option>
+            <option>Barrio Guayquiraró</option>
+            <option value="Otro">Otro (especificar)</option>
+          </select>
+          <p class="msg" id="msg-alumno_barrio">Elegí el barrio.</p>
+        </div>
+        <div class="f full" id="f-barrio-otro" hidden>
+          <label for="alumno_barrio_otro">¿Cuál? <span class="req">*</span></label>
+          <input type="text" id="alumno_barrio_otro" name="alumno_barrio_otro"
+            placeholder="Nombre del barrio, paraje o zona">
+          <p class="msg" id="msg-alumno_barrio_otro">Escribí el nombre del barrio.</p>
         </div>
         <div class="f">
           <label for="alumno_telefono">Teléfono <span class="req">*</span></label>
@@ -638,6 +650,12 @@ function chequearEdad(){
 }
 $('alumno_nacimiento').addEventListener('change', () => { chequearEdad(); limpiar('alumno_nacimiento'); });
 
+/* ===== Barrio ======================================================== */
+$('alumno_barrio').addEventListener('change', function(){
+  $('f-barrio-otro').hidden = this.value !== 'Otro';
+  limpiar('alumno_barrio');
+});
+
 /* ===== Condición de salud ============================================ */
 document.querySelectorAll('input[name="salud_condicion"]').forEach(r => {
   r.addEventListener('change', () => {
@@ -674,6 +692,8 @@ function validar(){
   const edad = chequearEdad();
   push('alumno_nacimiento', edad !== null);
   push('alumno_domicilio', esNombre($('alumno_domicilio').value));
+  push('alumno_barrio', !!$('alumno_barrio').value);
+  if($('alumno_barrio').value === 'Otro') push('alumno_barrio_otro', esNombre($('alumno_barrio_otro').value));
   push('alumno_telefono', esTel($('alumno_telefono').value));
   push('alumno_email', esEmail($('alumno_email').value));
 
@@ -716,7 +736,8 @@ function armarPayload(){
     alumno_nombre: val('alumno_nombre'), alumno_dni: soloDigitos(val('alumno_dni')),
     alumno_nacimiento: val('alumno_nacimiento'), alumno_edad: edad === null ? '' : edad,
     alumno_genero: radio('alumno_genero'), alumno_domicilio: val('alumno_domicilio'),
-    alumno_barrio: val('alumno_barrio'), alumno_telefono: val('alumno_telefono'),
+    alumno_barrio: val('alumno_barrio') === 'Otro' ? val('alumno_barrio_otro') : val('alumno_barrio'),
+    alumno_telefono: val('alumno_telefono'),
     alumno_email: val('alumno_email'), alumno_escuela: val('alumno_escuela'),
     tutor_nombre: val('tutor_nombre'), tutor_dni: soloDigitos(val('tutor_dni')),
     tutor_vinculo: val('tutor_vinculo'), tutor_telefono: val('tutor_telefono'), tutor_email: val('tutor_email'),
@@ -799,6 +820,7 @@ $('btn-otra').addEventListener('click', () => {
   $('form').hidden = false;
   $('done').hidden = true;
   $('f-detalle').hidden = true;
+  $('f-barrio-otro').hidden = true;
   $('step-tutor').hidden = true;
   $('edad-hint').textContent = '';
   $('nota-edad').className = 'note';
